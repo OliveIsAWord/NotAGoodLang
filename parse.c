@@ -1,5 +1,7 @@
 #include "parse.h"
 
+#include "sysexits.h"
+
 #include "lex.h"
 #include "utility.h"
 #include "vector.h"
@@ -181,13 +183,16 @@ struct Expr parse_expr() {
 /// Safety: `t` is assumed to be non-empty. This will always be the case
 /// under normal operation because the EndOfProgram token is always present.
 vector(struct Expr) parse(struct Token *t) {
-    // Sets static mut that every parser reads from and iterates
+    // Sets static mut that every parser reads from and iterates.
     tokens = t;
     vector(struct Expr) es = NULL;
     while (tokens->type != EndOfProgram) {
         struct Expr e = parse_expr();
+        if (e.type == ParseFailure) {
+            eprintf("Parsing error.");
+            exit(EX_DATAERR);
+        }
         vector_push(es, e);
-        if (e.type == ParseFailure) break;
     }
     vector_shrink_to_fit(es);
     return es;
@@ -224,7 +229,7 @@ void expr_debug(struct Expr t) {
                 printf("%d", var.num);
             } else {
                 printf("???]}");
-                exit(1);
+                exit(EX_SOFTWARE);
             }
             break;
         case Variable:

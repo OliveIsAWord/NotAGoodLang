@@ -146,7 +146,7 @@ vector(struct Token) lex(char *source) {
             vector(char) token_str = NULL;
             while (1) {
                 char c = *++source;
-                if (c == '\0' || c == STRING_QUOTE) {
+                if (c == STRING_QUOTE) {
                     break;
                 }
                 if (c == STRING_ESCAPE) {
@@ -156,12 +156,17 @@ vector(struct Token) lex(char *source) {
                         case '0': c = '\0'; break;
                         case STRING_QUOTE: case STRING_ESCAPE: break;
                         default:
-                            printf("ERROR: Unknown escape character '\\%c'\n", c);
-                            exit(1);
+                            eprintf("ERROR: Unknown escape character '\\%c'\n", c);
+                            exit(EX_DATAERR);
                     }
+                }
+                if (c == '\0') {
+                    eprintf("Unexpected end of file when parsing string.\n");
+                    exit(EX_DATAERR);
                 }
                 vector_push(token_str, c);
             }
+            vector_shrink_to_fit(token_str);
             int32_t len = vector_get_size(token_str);
             // printf("Got String -> \"");
             // print_str_with_len(token_str, len);
