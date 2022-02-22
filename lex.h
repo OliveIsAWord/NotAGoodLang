@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include "vector.h"
 
-enum TokenType{
+typedef enum {
     Number,
     String,
     OpenParen,
@@ -14,22 +14,22 @@ enum TokenType{
     Arrow,
     Identifier,
     EndOfProgram,
-};
+} TokenType;
 
 /// Safety:
 ///     `num` and `str` will be uninitialized if the TokenType does not require it.
-struct Token {
-    enum TokenType type;
+typedef struct {
+    TokenType type;
     int32_t num;
     char * str;
-};
+} Token;
 
 
-char *token_type_str(enum TokenType);
+char *token_type_str(TokenType);
 
-void token_debug(struct Token);
+void token_debug(Token);
 
-vector(struct Token) lex(char *source);
+vector(Token) lex(char *source);
 
 void fprint_str_with_len(FILE *, char *s, int len);
 void print_str_with_len(char *s, int len);

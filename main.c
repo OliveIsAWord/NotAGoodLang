@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     char *buffer = load_source(argv[1]);
     // clock_t start_time = clock();
     // double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
-    vector(struct Token) tokens = lex(buffer);
+    vector(Token) tokens = lex(buffer);
     // printf("\nSuccess! Size: %zu Cap: %zu\n",
     //     vector_get_size(tokens),
     //     vector_get_capacity(tokens));
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     // }
     free(buffer);
 
-    vector(struct Expr) exprs = parse(tokens);
+    vector(Expr) exprs = parse(tokens);
     // printf("\nSuccess! Size: %zu Cap: %zu\n",
     //     vector_get_size(exprs),
     //     vector_get_capacity(exprs));

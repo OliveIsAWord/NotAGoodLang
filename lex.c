@@ -80,8 +80,8 @@ char *next_with_skip(char *s) {
 ///     `source` is assumed to be STR_VALID.
 ///     Any tokens which hold a char * can be assumed to be STR_VALID.
 ///     The `val` field is initialized for any type that uses it.
-vector(struct Token) lex(char *source) {
-    vector(struct Token) tokens = NULL;
+vector(Token) lex(char *source) {
+    vector(Token) tokens = NULL;
     char* ident_start = NULL;
     while (1) {
         char *s2 = next_with_skip(source - 1);
@@ -95,7 +95,7 @@ vector(struct Token) lex(char *source) {
             for (int i = 0; i < len; i++) {
                 ident_str[i] = ident_start[i];
             }
-            struct Token token = {
+            Token token = {
                 .type = Identifier,
                 .num = len,
                 .str = ident_str,
@@ -115,26 +115,26 @@ vector(struct Token) lex(char *source) {
         //int should_start_ident = true;
         if (c == OPEN_PAREN) {
             // printf("Got OpenParen\n");
-            struct Token token = {.type = OpenParen};
+            Token token = {.type = OpenParen};
             vector_push(tokens, token);
             source++;
         } else if (c == CLOSE_PAREN) {
             // printf("Got CloseParen\n");
-            struct Token token = {.type = CloseParen};
+            Token token = {.type = CloseParen};
             vector_push(tokens, token);
             source++;
         } else if (c == OPEN_BRACE) {
             // printf("Got OpenBrace\n");
-            struct Token token = {.type = OpenBrace};
+            Token token = {.type = OpenBrace};
             vector_push(tokens, token);
             source++;
         } else if (c == CLOSE_BRACE) {
             // printf("Got CloseBrace\n");
-            struct Token token = {.type = CloseBrace};
+            Token token = {.type = CloseBrace};
             vector_push(tokens, token);
             source++;
         } else if (c == EQUALS_SIGN) {
-            struct Token token;
+            Token token;
             if (*++source == ARROW_POINT) {
                 token.type = Arrow;
                 source++;
@@ -171,7 +171,7 @@ vector(struct Token) lex(char *source) {
             // printf("Got String -> \"");
             // print_str_with_len(token_str, len);
             // printf("\"\n");
-            struct Token token = {
+            Token token = {
                 .type = String,
                 .num = len,
                 .str = token_str,
@@ -195,7 +195,7 @@ vector(struct Token) lex(char *source) {
                     num = num * 10 + digit_to_num(c);
                 }
                 // printf("Got Number -> %d\n", num);
-                struct Token token = {.type = Number, .num = num};
+                Token token = {.type = Number, .num = num};
                 vector_push(tokens, token);
             }
         } else {
@@ -204,13 +204,13 @@ vector(struct Token) lex(char *source) {
             //source++;
         }
     }
-    struct Token end_token = {.type = EndOfProgram};
+    Token end_token = {.type = EndOfProgram};
     vector_push(tokens, end_token);
     vector_shrink_to_fit(tokens);
     return tokens;
 }
 
-char *token_type_str(enum TokenType ty)
+char *token_type_str(TokenType ty)
 {
     switch (ty) {
         case Number: return "Number";
@@ -245,7 +245,7 @@ void print_str_with_len(char *s, int len) {
     fprint_str_with_len(stdout, s, len);
 }
 
-void token_debug(struct Token t) {
+void token_debug(Token t) {
     char *type_str = token_type_str(t.type);
     switch (t.type) {
         case Number:

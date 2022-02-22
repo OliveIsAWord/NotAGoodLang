@@ -9,9 +9,9 @@
 #include "utility.h"
 #include "vector.h"
 
-void compile_to_python(vector(struct Expr), FILE *);
+void compile_to_python(vector(Expr), FILE *);
 
-void compile_to(vector(struct Expr) statements, FILE *out, Target language) {
+void compile_to(vector(Expr) statements, FILE *out, Target language) {
     if (out == NULL) {
         out = stdout;
     }
@@ -29,12 +29,12 @@ void compile_to(vector(struct Expr) statements, FILE *out, Target language) {
 }
 
 
-void compile_expr_to_python(struct Expr statement, FILE *o) {
+void compile_expr_to_python(Expr statement, FILE *o) {
     //printf("                                                       ");
     //expr_debugln(statement);
     switch (statement.type) {
         case Literal:
-            struct Token t = *statement.children.tokens;
+            Token t = *statement.children.tokens;
             if (t.type == String) {
                 fprintf(o, "\"");
                 fprint_str_with_len(o, t.str, t.num);
@@ -44,12 +44,12 @@ void compile_expr_to_python(struct Expr statement, FILE *o) {
             }
             break;
         case Variable:
-            struct Token name = *statement.children.tokens;
+            Token name = *statement.children.tokens;
             fprint_str_with_len(o, name.str, name.num);
             break;
         case Assignment:
-            struct Expr *exprs = statement.children.exprs;
-            struct Token lhs = *exprs->children.tokens;
+            Expr *exprs = statement.children.exprs;
+            Token lhs = *exprs->children.tokens;
             fprintf(o, "(");
             fprint_str_with_len(o, lhs.str, lhs.num);
             fprintf(o, " := ");
@@ -57,8 +57,8 @@ void compile_expr_to_python(struct Expr statement, FILE *o) {
             fprintf(o, ")");
             break;
         case FunctionCall:
-            vector(struct Expr) args = statement.children.exprs;
-            struct Token func = *args->children.tokens;
+            vector(Expr) args = statement.children.exprs;
+            Token func = *args->children.tokens;
             fprint_str_with_len(o, func.str, func.num);
             fprintf(o, "(");
             size_t len = vector_get_size(args);
@@ -70,7 +70,7 @@ void compile_expr_to_python(struct Expr statement, FILE *o) {
             break;
         case Block:
             // Yes, this is awful. No, I won't change it.
-            vector(struct Expr) statements = statement.children.exprs;
+            vector(Expr) statements = statement.children.exprs;
             len = vector_get_size(statements);
             if (len) {
                 fprintf(o, "[");
@@ -84,13 +84,13 @@ void compile_expr_to_python(struct Expr statement, FILE *o) {
             }
             break;
         case Lambda:
-            vector(struct Expr) params = statement.children.exprs;
+            vector(Expr) params = statement.children.exprs;
             fprintf(o, "lambda");
             len = vector_get_size(params);
             if (len - 1) {
                 fprintf(o, " ");
                 for (size_t i = 0; i < len - 1; i += 1) {
-                    struct Token param = *params[i].children.tokens;
+                    Token param = *params[i].children.tokens;
                     fprint_str_with_len(o, param.str, param.num);
                     if (i < len - 2) fprintf(o, ", ");
                 }
@@ -102,7 +102,7 @@ void compile_expr_to_python(struct Expr statement, FILE *o) {
     }
 }
 
-void compile_to_python(vector(struct Expr) statements, FILE *o) {
+void compile_to_python(vector(Expr) statements, FILE *o) {
     char * prelude =
         "import functools as _functools\n"
         "import operator as _operator\n"
@@ -132,7 +132,7 @@ void compile_to_python(vector(struct Expr) statements, FILE *o) {
     ;
     fprintf(o, "%s", prelude);
     for (size_t i = 0; i < vector_get_size(statements); i++) {
-        struct Expr statement = statements[i];
+        Expr statement = statements[i];
         compile_expr_to_python(statement, o);
         fprintf(o, "\n");
     }
