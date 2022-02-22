@@ -3,6 +3,7 @@ If the name didn't give it away, "Not A Good Language" has some problems. Whethe
 ## Known Problems
 
 - Currently, Tokens and Exprs are not properly freed. This is especially a problem in the parsing stage, where every failed parsing attempt will leak Expr data.
+- Code output from Rust compilation simply does not work. Call it a feature.
 - The semantics of the language, such as variable scope, builtins, and legal syntax, are *heavily* determined by the compilation target.
 - The current lexer is *far* too liberal with what can go into a string literal (e.g. newlines, control characters).
 - The documentation is spotty and safety contracts have not been finalized.

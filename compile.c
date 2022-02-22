@@ -10,6 +10,7 @@
 #include "vector.h"
 
 void compile_to_python(vector(Expr), FILE *);
+void compile_to_rust(vector(Expr), FILE *);
 
 void compile_to(vector(Expr) statements, FILE *out, Target language) {
     if (out == NULL) {
@@ -19,9 +20,11 @@ void compile_to(vector(Expr) statements, FILE *out, Target language) {
         case Python:
             compile_to_python(statements, out);
             break;
+        case Rust:
+            compile_to_rust(statements, out);
+            break;
         default:
-            eprintf("Unrecognized language: %s (internal code %d)",
-                "???",
+            eprintf("Unrecognized language (with internal code %d).",
                 language
             );
             exit(EX_SOFTWARE);
@@ -135,5 +138,86 @@ void compile_to_python(vector(Expr) statements, FILE *o) {
         Expr statement = statements[i];
         compile_expr_to_python(statement, o);
         fprintf(o, "\n");
+    }
+}
+
+void compile_expr_to_rust(Expr statement, FILE *o) {
+    //printf("                                                       ");
+    //expr_debugln(statement);
+    switch (statement.type) {
+        case Literal:
+            Token t = *statement.children.tokens;
+            if (t.type == String) {
+                fprintf(o, "\"");
+                fprint_str_with_len(o, t.str, t.num);
+                fprintf(o, "\"");
+            } else if (t.type == Number) {
+                fprintf(o, "%d", t.num);
+            }
+            break;
+        case Variable:
+            Token name = *statement.children.tokens;
+            fprint_str_with_len(o, name.str, name.num);
+            break;
+        case Assignment:
+            // e.g. `a = 5; a`
+            Expr *exprs = statement.children.exprs;
+            Token lhs = *exprs->children.tokens;
+            fprint_str_with_len(o, lhs.str, lhs.num);
+            fprintf(o, " = ");
+            compile_expr_to_rust(exprs[1], o);
+            fprintf(o, "; ");
+            fprint_str_with_len(o, lhs.str, lhs.num);
+            break;
+        case FunctionCall:
+            vector(Expr) args = statement.children.exprs;
+            Token func = *args->children.tokens;
+            fprint_str_with_len(o, func.str, func.num);
+            fprintf(o, "(");
+            size_t len = vector_get_size(args);
+            for (size_t i = 1; i < len; i += 1) {
+                compile_expr_to_rust(args[i], o);
+                if (i < len - 1) fprintf(o, ", ");
+            }
+            fprintf(o, ")");
+            break;
+        case Block:
+            // Luckily, Rust also has blocks and is expression based.
+            fprintf(o, "{");
+            vector(Expr) statements = statement.children.exprs;
+            len = vector_get_size(statements);
+            for (size_t i = 0; i < len; i += 1) {
+                compile_expr_to_rust(statements[i], o);
+                if (i < len - 1) fprintf(o, "; ");
+            }
+            fprintf(o, "}");
+            break;
+        case Lambda:
+            vector(Expr) params = statement.children.exprs;
+            fprintf(o, "|");
+            len = vector_get_size(params);
+            if (len - 1) {
+                for (size_t i = 0; i < len - 1; i += 1) {
+                    Token param = *params[i].children.tokens;
+                    fprint_str_with_len(o, param.str, param.num);
+                    if (i < len - 2) fprintf(o, ", ");
+                }
+            }
+            fprintf(o, "| ");
+            compile_expr_to_rust(params[len - 1], o);
+            break;
+        default: break;
+    }
+}
+
+void compile_to_rust(vector(Expr) statements, FILE *o) {
+    char * prelude =
+        "\n"
+    ;
+    fprintf(o, "%s", prelude);
+    for (size_t i = 0; i < vector_get_size(statements); i++) {
+        Expr statement = statements[i];
+        compile_expr_to_rust(statement, o);
+        fprintf(o, ";\n");
     }
 }

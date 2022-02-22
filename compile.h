@@ -6,6 +6,7 @@
 
 typedef enum {
     Python,
+    Rust,
 } Target;
 
 /// Takes a series of expressions and outputs to a file the compiled code in the
